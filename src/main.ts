@@ -1,15 +1,42 @@
 import { NestFactory } from "@nestjs/core";
-import session from "express-session";
 import { AppModule } from "./app.module";
+import * as passport from "passport";
+import * as session from "express-session";
+const RedisStore = require("connect-redis").default;
+import { createClient } from "redis";
+import { Logger } from "@nestjs/common";
 
-async function bootstrap() {
+const main = async () => {
   const app = await NestFactory.create(AppModule);
-  app.use(session());
+  const redisClient = createClient();
+  await redisClient.connect();
 
-  const passport = require("passport");
-  // app.useGlobalPipes(new ClassValidationPipe({ whitelist: true }));
+  redisClient.on("error", (err) =>
+    Logger.error("Could not establish a connection with redis. " + err)
+  );
+  redisClient.on("connect", () =>
+    Logger.verbose("Connected to redis successfully")
+  );
+
+  app.use(
+    session({
+      name: "name",
+      store: new RedisStore({ client: redisClient }),
+      secret: "secret",
+      resave: false,
+      saveUninitialized: false,
+      cookie: {
+        httpOnly: true,
+        sameSite: "lax",
+        maxAge: 1000 * 60 * 60 * 24 * 365 * 10,
+        // secure: true,
+      },
+    })
+  );
+
   app.use(passport.initialize());
   app.use(passport.session());
   await app.listen(3000);
-}
-bootstrap();
+};
+
+main().catch((err) => console.log(err));

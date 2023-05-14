@@ -3,7 +3,7 @@
 # ------------------------------------------------------
 
 type UserModel {
-  id: String!
+  id: Float!
   username: String!
   email: String!
   created_at: DateTime!
@@ -20,11 +20,17 @@ type Query {
 }
 
 type Mutation {
-  createUser(options: RegisterInput!): UserModel!
+  createUser(options: Credentials!): UserModel!
+  login(credentials: LoginCredentials!): UserModel!
 }
 
-input RegisterInput {
+input Credentials {
   username: String!
   password: String!
   email: String!
+}
+
+input LoginCredentials {
+  username: String!
+  password: String!
 }

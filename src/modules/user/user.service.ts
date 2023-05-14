@@ -1,9 +1,9 @@
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
-import { RegisterInput } from "./user.dto";
+import { Credentials, LoginCredentials } from "./user.dto";
 import { UserModel } from "./user.model";
-import argon2 from "argon2";
+import * as argon2 from "argon2";
 
 @Injectable()
 export class UserService {
@@ -12,21 +12,22 @@ export class UserService {
     private readonly userRep: Repository<UserModel>
   ) {}
 
-  async create(data: RegisterInput): Promise<UserModel> {
+  async create(data: Credentials): Promise<UserModel> {
+    data.password = await argon2.hash(data.password);
     const createdUser = this.userRep.create(data);
+
     return await createdUser.save();
   }
 
-  async loginByUsername(
-    username: string,
-    password: string
-  ): Promise<UserModel> {
-    const user = await this.userRep.findOneBy({ username });
+  async loginByUsername(credentials: LoginCredentials): Promise<UserModel> {
+    const user = await this.userRep.findOneBy({
+      username: credentials.username,
+    });
     if (!user) {
       return null;
     }
 
-    const valid = await argon2.verify(user.password, password);
+    const valid = await argon2.verify(user.password, credentials.password);
     return valid ? user : null;
   }
 

@@ -3,8 +3,6 @@ import { PassportStrategy } from "@nestjs/passport";
 import { Inject, Injectable, UnauthorizedException } from "@nestjs/common";
 import { AuthService } from "./auth.service";
 
-// this is used to validate user credentials on login from passport
-// and is invoked in LocalGuard
 @Injectable()
 export class LocalStrategy extends PassportStrategy(Strategy) {
   constructor(@Inject(AuthService) private readonly authService: AuthService) {
@@ -16,6 +14,7 @@ export class LocalStrategy extends PassportStrategy(Strategy) {
     if (!user) {
       throw new UnauthorizedException();
     }
+
     return user;
   }
 }

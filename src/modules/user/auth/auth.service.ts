@@ -6,6 +6,6 @@ import { UserService } from "../user.service";
 export class AuthService {
   constructor(@Inject(UserService) private readonly userService: UserService) {}
   async validateUser(username: string, password: string): Promise<UserModel> {
-    return await this.userService.loginByUsername(username, password);
+    return await this.userService.loginByUsername({ username, password });
   }
 }
