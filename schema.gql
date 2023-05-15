@@ -2,8 +2,8 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
-type UserModel {
-  id: Float!
+type User {
+  id: Int!
   username: String!
   email: String!
   created_at: DateTime!
@@ -16,12 +16,14 @@ A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date
 scalar DateTime
 
 type Query {
-  user(id: String!): UserModel!
+  userById(id: Int!): User!
+  me: User
 }
 
 type Mutation {
-  createUser(options: Credentials!): UserModel!
-  login(credentials: LoginCredentials!): UserModel!
+  createUser(credentials: Credentials!): User!
+  login(credentials: LoginCredentials!): User!
+  logout: Boolean!
 }
 
 input Credentials {

@@ -1,6 +1,6 @@
 import { Inject, Injectable } from "@nestjs/common";
 import { PassportSerializer } from "@nestjs/passport";
-import { UserModel } from "../user.model";
+import { User } from "../user.model";
 import { UserService } from "../user.service";
 
 // this attaches the user entity on req if authenticated
@@ -10,13 +10,13 @@ export class SessionSerializer extends PassportSerializer {
     super();
   }
 
-  serializeUser(user: UserModel, done: (err: any, user: number) => void) {
-    done(null, user.id);
+  serializeUser(user: User, done: (err: any, user: User) => void) {
+    done(null, user);
   }
 
   async deserializeUser(
-    user: UserModel,
-    done: (err: any, user: UserModel | null) => void
+    user: User,
+    done: (err: any, user: User | null) => void
   ) {
     const userDB = await this.userService.findUserById(user.id);
     return userDB ? done(null, userDB) : done(null, null);

@@ -1,7 +1,8 @@
-import { Field, InputType, ObjectType } from "@nestjs/graphql";
-import { UserModel } from "./user.model";
+import { Field, InputType } from "@nestjs/graphql";
+import { User } from "./user.model";
 import { Session } from "express-session";
 import Redis from "ioredis";
+import { Request, Response } from "express";
 
 @InputType()
 export class Credentials {
@@ -17,7 +18,7 @@ export class LoginCredentials {
 }
 
 export type Ctx = {
-  req: Request & { session: Session; user: UserModel };
+  req: Request & { session: Session; user: User };
   res: Response;
   redisClient: Redis;
 };

@@ -6,17 +6,17 @@ import {
   UpdateDateColumn,
   BaseEntity,
 } from "typeorm";
-import { ObjectType, Field } from "@nestjs/graphql";
+import { ObjectType, Field, Int } from "@nestjs/graphql";
 
 @ObjectType()
 @Entity()
-export class UserModel extends BaseEntity {
-  @Field()
+export class User extends BaseEntity {
+  @Field(() => Int)
   @PrimaryGeneratedColumn()
   id: number;
 
   @Field()
-  @Column({ length: 25, nullable: false })
+  @Column({ length: 25, unique: true, nullable: false })
   username: string;
 
   @Field()
