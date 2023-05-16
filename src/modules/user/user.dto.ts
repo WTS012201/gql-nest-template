@@ -1,8 +1,6 @@
-import { Field, InputType } from "@nestjs/graphql";
+import { Field, InputType, ObjectType } from "@nestjs/graphql";
+import { Errors, FieldError } from "src/constants";
 import { User } from "./user.model";
-import { Session } from "express-session";
-import Redis from "ioredis";
-import { Request, Response } from "express";
 
 @InputType()
 export class Credentials {
@@ -17,8 +15,11 @@ export class LoginCredentials {
   @Field() password!: string;
 }
 
-export type Ctx = {
-  req: Request & { session: Session; user: User };
-  res: Response;
-  redisClient: Redis;
-};
+@ObjectType({
+  implements: () => [Errors],
+})
+export class UserResponse implements Errors {
+  @Field(() => User, { nullable: true })
+  user?: User;
+  errors?: FieldError[];
+}

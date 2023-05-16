@@ -5,36 +5,53 @@ import {
   Args,
   Query,
   Context,
-  Int,
   ResolveField,
   Root,
 } from "@nestjs/graphql";
 import { Inject, UseGuards } from "@nestjs/common";
 import { UserService } from "./user.service";
-import { Credentials, Ctx, LoginCredentials } from "./user.dto";
-import { GqlAuthGuard, LocalAuthGuard } from "./auth/auth.guard";
+import { Credentials, LoginCredentials, UserResponse } from "./user.dto";
+import { GqlAuthGuard, LocalAuthGuard, UserAuthGuard } from "./auth/auth.guard";
+import { Ctx } from "src/constants";
 
 @Resolver(User)
 export class UserResolver {
   constructor(@Inject(UserService) private userService: UserService) {}
 
-  @Mutation(() => User)
+  @Mutation(() => UserResponse)
   async createUser(
     @Args("credentials") credentials: Credentials,
     @Context() { req }: Ctx
-  ): Promise<User> {
-    const user = await this.userService.create(credentials);
-    req.user = user;
-    return user;
+  ): Promise<UserResponse> {
+    const res = await this.userService.create(credentials);
+    if (!res.errors) req.user = res.user;
+    return res;
   }
 
   @Mutation(() => User)
   @UseGuards(GqlAuthGuard, LocalAuthGuard)
   async login(
-    @Args("credentials") _credentials: LoginCredentials,
+    @Args("credentials") _: LoginCredentials,
     @Context() { req }: Ctx
   ): Promise<User> {
     return req.user;
+  }
+
+  @Query(() => User, { nullable: true })
+  @UseGuards(UserAuthGuard)
+  me(@Context() { req }: Ctx): Promise<User> {
+    if (!req.user.id) {
+      return null;
+    }
+
+    return this.userService.findUserById(req.user.id);
+  }
+
+  @ResolveField(() => String, { nullable: true })
+  email(@Root() user: User, @Context() { req }: Ctx): string {
+    if (req.user.id === user.id) {
+      return user.email;
+    }
   }
 
   @Mutation(() => Boolean)
@@ -50,33 +67,5 @@ export class UserResolver {
         resolve(true);
       })
     );
-  }
-
-  @Query(() => User)
-  async userById(
-    @Args("id", { type: () => Int }) id: number,
-    @Context() { req: _req }: Ctx
-  ): Promise<User> {
-    return await this.userService.findUserById(id);
-  }
-
-  @Query(() => User, { nullable: true })
-  me(@Context() { req }: Ctx) {
-    console.log(req.user.id);
-    if (!req.user.id) {
-      return null;
-    }
-
-    return User.findOne({ where: { id: req.user.id } });
-  }
-
-  // if selecting email from returned usermodel, wont show email unless it
-  // matches your email, keep in mind n + 1 problem if doing queries here
-  @ResolveField(() => String)
-  email(@Root() user: User, @Context() { req }: Ctx) {
-    if (req.user.id === user.id) {
-      return user.email;
-    }
-    return "";
   }
 }

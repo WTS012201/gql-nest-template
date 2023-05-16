@@ -15,13 +15,26 @@ A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date
 """
 scalar DateTime
 
+type FieldError {
+  field: String!
+  message: String!
+}
+
+type UserResponse implements Errors {
+  errors: [FieldError!]
+  user: User
+}
+
+interface Errors {
+  errors: [FieldError!]
+}
+
 type Query {
-  userById(id: Int!): User!
   me: User
 }
 
 type Mutation {
-  createUser(credentials: Credentials!): User!
+  createUser(credentials: Credentials!): UserResponse!
   login(credentials: LoginCredentials!): User!
   logout: Boolean!
 }
